@@ -1,13 +1,21 @@
 services:
   replay-api:
     build: .
-    image: switch-egress-replay:1.0.0
+    image: switch-egress-replay:1.1.0
     container_name: switch-egress-replay
+    environment:
+      # 时隙登记持久化位置；容器内挂在命名卷上，重启/重建后仍可按产线查询。
+      SLOT_DB_PATH: /app/data/slots.db
     ports:
       - "8000:8000"
+    volumes:
+      - slot-data:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health').status==200 else 1)"]
       interval: 10s
       timeout: 3s
       retries: 5
+
+volumes:
+  slot-data:
